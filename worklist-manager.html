@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📚 たんごちょう管理ツール</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=M+PLUS+Rounded+1c:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#F0F4F8;--card:#fff;--primary:#4F46E5;--primary-light:#EEF2FF;
+  --secondary:#10B981;--secondary-light:#D1FAE5;
+  --danger:#EF4444;--danger-light:#FEE2E2;
+  --warn:#F59E0B;--warn-light:#FEF3C7;
+  --text:#1E293B;--text-mid:#64748B;--text-light:#94A3B8;
+  --border:#E2E8F0;--radius:16px;--radius-sm:12px;
+  --shadow:0 4px 20px rgba(0,0,0,.06);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'M PLUS Rounded 1c','Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.container{max-width:860px;margin:0 auto;padding:32px 24px 60px}
+.header{text-align:center;margin-bottom:28px}
+.header h1{font-size:1.8rem;font-weight:900;color:var(--primary)}
+.header p{font-size:.95rem;color:var(--text-mid);margin-top:6px;font-weight:500;line-height:1.6}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:28px 24px;margin-bottom:20px}
+.card-title{font-size:1.1rem;font-weight:800;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.step-badge{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:var(--primary);color:#fff;font-size:.85rem;font-weight:900;flex-shrink:0}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:12px 24px;border:none;border-radius:60px;font-family:inherit;font-size:1rem;font-weight:700;cursor:pointer;transition:all .2s;white-space:nowrap}
+.btn:active{transform:scale(.96)}.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn-primary{background:var(--primary);color:#fff;box-shadow:0 3px 12px rgba(79,70,229,.25)}
+.btn-primary:hover:not(:disabled){box-shadow:0 5px 18px rgba(79,70,229,.4);transform:translateY(-1px)}
+.btn-success{background:var(--secondary);color:#fff;box-shadow:0 3px 12px rgba(16,185,129,.25)}
+.btn-success:hover:not(:disabled){box-shadow:0 5px 18px rgba(16,185,129,.4);transform:translateY(-1px)}
+.btn-danger{background:var(--danger);color:#fff;box-shadow:0 3px 12px rgba(239,68,68,.25)}
+.btn-danger:hover:not(:disabled){box-shadow:0 5px 18px rgba(239,68,68,.4);transform:translateY(-1px)}
+.btn-outline{background:transparent;color:var(--text);border:2px solid var(--border)}
+.btn-outline:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-light)}
+.btn-sm{padding:8px 16px;font-size:.88rem}
+.btn-xs{padding:6px 12px;font-size:.82rem;border-radius:8px}
+.btn-group{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+.btn-icon{padding:8px;border-radius:10px;background:transparent;border:2px solid var(--border);cursor:pointer;font-size:1.1rem;transition:all .2s;display:inline-flex;align-items:center;justify-content:center}
+.btn-icon:hover{background:var(--primary-light);border-color:var(--primary)}
+.btn-icon.danger:hover{background:var(--danger-light);border-color:var(--danger)}
+
+/* Info box */
+.info-box{background:var(--primary-light);border-radius:var(--radius-sm);padding:14px 16px;font-size:.88rem;color:var(--primary);font-weight:600;line-height:1.6;margin-bottom:14px}
+.info-box code{background:rgba(79,70,229,.1);padding:2px 6px;border-radius:4px;font-family:'Nunito',monospace;font-size:.83rem}
+.warn-box{background:var(--warn-light);border-radius:var(--radius-sm);padding:14px 16px;font-size:.88rem;color:#92400E;font-weight:600;line-height:1.6;margin-bottom:14px}
+
+/* Upload area */
+.upload-area{border:2.5px dashed var(--border);border-radius:var(--radius-sm);padding:28px 16px;text-align:center;cursor:pointer;transition:all .3s;position:relative}
+.upload-area:hover{border-color:var(--primary);background:var(--primary-light)}
+.upload-area input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.upload-area .icon{font-size:2rem;margin-bottom:4px;display:block}
+.upload-area .label{font-size:1.05rem;font-weight:700}
+.upload-area .sub{font-size:.82rem;color:var(--text-mid);margin-top:2px}
+
+/* Existing worklist cards */
+.wl-card{border:2px solid var(--border);border-radius:var(--radius-sm);margin-bottom:12px;overflow:hidden;transition:all .2s}
+.wl-card.open{border-color:var(--primary)}
+.wl-header{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;transition:background .2s;user-select:none}
+.wl-header:hover{background:#F8FAFC}
+.wl-icon{font-size:1.4rem;flex-shrink:0}
+.wl-info{flex:1;min-width:0}
+.wl-name{font-weight:800;font-size:1.05rem;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wl-count{font-size:.82rem;color:var(--text-mid);font-weight:500}
+.wl-actions{display:flex;gap:6px;align-items:center}
+.wl-chevron{font-size:.9rem;color:var(--text-light);transition:transform .2s;flex-shrink:0}
+.wl-card.open .wl-chevron{transform:rotate(90deg)}
+.wl-body{display:none;border-top:2px solid var(--border);padding:16px}
+.wl-card.open .wl-body{display:block}
+
+/* Word table */
+.word-table{width:100%;border-collapse:collapse;font-size:.92rem}
+.word-table th{text-align:left;padding:8px 12px;font-weight:700;color:var(--text-mid);font-size:.82rem;border-bottom:2px solid var(--border);position:sticky;top:0;background:var(--card)}
+.word-table td{padding:8px 12px;border-bottom:1px solid #F1F5F9}
+.word-table td:first-child{font-family:'Nunito',sans-serif;font-weight:800}
+.word-table-wrap{max-height:350px;overflow-y:auto;border:1px solid var(--border);border-radius:8px}
+
+/* New file list */
+.new-file{display:flex;align-items:center;gap:10px;padding:12px 14px;background:#F8FAFC;border:2px solid var(--border);border-radius:var(--radius-sm);margin-top:10px}
+.new-file .nf-info{flex:1;min-width:0}
+.new-file .nf-name-input{border:2px solid var(--border);border-radius:8px;padding:6px 10px;font-family:inherit;font-size:.88rem;font-weight:600;width:180px;outline:none}
+.new-file .nf-name-input:focus{border-color:var(--primary)}
+.new-file .nf-detail{font-size:.8rem;color:var(--text-mid);margin-top:2px;display:block}
+
+/* Status badge */
+.status-loaded{display:inline-block;background:var(--secondary-light);color:#065F46;padding:4px 12px;border-radius:20px;font-size:.82rem;font-weight:700;margin-bottom:14px}
+.status-empty{display:inline-block;background:var(--warn-light);color:#92400E;padding:4px 12px;border-radius:20px;font-size:.82rem;font-weight:700;margin-bottom:14px}
+
+/* Preview */
+.preview-box{background:#F8FAFC;border:2px solid var(--border);border-radius:var(--radius-sm);padding:16px;max-height:300px;overflow:auto;font-family:'Nunito',monospace;font-size:.82rem;line-height:1.5;color:var(--text-mid);white-space:pre-wrap;word-break:break-all}
+.success-box{background:var(--secondary-light);color:#065F46;border-radius:var(--radius-sm);padding:14px;font-size:.92rem;font-weight:600;text-align:center;margin-top:14px}
+
+/* Confirm modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .2s}
+.modal-overlay.show{opacity:1;pointer-events:auto}
+.modal{background:var(--card);border-radius:var(--radius);padding:28px 24px;max-width:400px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.15);text-align:center}
+.modal h3{font-size:1.1rem;font-weight:800;margin-bottom:10px}
+.modal p{font-size:.95rem;color:var(--text-mid);margin-bottom:20px;line-height:1.5}
+
+/* Toast */
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--text);color:#fff;padding:12px 24px;border-radius:60px;font-size:.92rem;font-weight:700;box-shadow:var(--shadow);transition:transform .3s;z-index:100;pointer-events:none;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+@media(max-width:500px){
+  .container{padding:16px 12px 40px}.card{padding:20px 16px}
+  .new-file .nf-name-input{width:120px}
+  .wl-actions .btn-xs span.hide-mobile{display:none}
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>📚 たんごちょう管理ツール</h1>
+    <p>単語帳の追加・削除・ダウンロード・一覧表示ができます</p>
+  </div>
+
+  <!-- Step 1: Existing worklists (auto-loaded or manual) -->
+  <div class="card" id="card-load">
+    <div class="card-title"><span class="step-badge">1</span> 登録ずみの単語帳</div>
+    <div id="load-status"></div>
+    <!-- Fallback upload (shown only when auto-load fails) -->
+    <div id="load-fallback" style="display:none">
+      <div class="warn-box">
+        ⚠️ <code>worklists/worklists.js</code> が自動で読み込めませんでした。<br>
+        ファイルを手動でアップロードするか、新規作成してください。
+      </div>
+      <div class="upload-area" id="load-area" style="padding:20px 16px">
+        <span class="icon">📂</span>
+        <div class="label">worklists.js を手動で読み込む</div>
+        <div class="sub">ファイルをドロップまたはクリック</div>
+        <input type="file" id="load-input" accept=".js">
+      </div>
+    </div>
+    <div id="existing-list"></div>
+    <div id="existing-count-wrap" style="display:none;text-align:center;margin-top:12px">
+      <span style="font-size:.88rem;color:var(--text-light);font-weight:500" id="existing-count"></span>
+    </div>
+  </div>
+
+  <!-- Step 3: Add new -->
+  <div class="card">
+    <div class="card-title" id="step-add-title"><span class="step-badge" id="step-add-num">2</span> あたらしい単語帳を追加</div>
+    <div class="info-box">
+      📌 CSVフォーマット: <code>単語,意味</code>（1行目がヘッダーでもOK）<br>
+      📌 複数ファイルを一度にアップロードできます
+    </div>
+    <div class="upload-area" id="add-area">
+      <span class="icon">📄</span>
+      <div class="label">CSVファイルを追加</div>
+      <div class="sub">クリックまたはドラッグ＆ドロップ（複数可）</div>
+      <input type="file" id="add-input" accept=".csv" multiple>
+    </div>
+    <div id="new-files-list"></div>
+  </div>
+
+  <!-- Step 4: Generate -->
+  <div class="card" id="card-save">
+    <div class="card-title"><span class="step-badge" id="step-save-num">3</span> 保存する</div>
+    <div class="info-box">
+      📌 ダウンロードした <code>worklists.js</code> を <code>worklists/</code> フォルダに上書き保存してください
+    </div>
+    <div id="save-summary" style="text-align:center;font-weight:700;font-size:1rem;padding:10px 0;color:var(--text-mid)"></div>
+    <div class="btn-group">
+      <button class="btn btn-outline btn-sm" onclick="togglePreview()">👁 プレビュー</button>
+      <button class="btn btn-success" id="btn-save" onclick="downloadJS()">💾 worklists.js をダウンロード</button>
+    </div>
+    <div id="preview-wrap" style="display:none;margin-top:14px">
+      <div class="preview-box" id="preview"></div>
+    </div>
+    <div id="success-msg"></div>
+  </div>
+</div>
+
+<!-- Confirm modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h3 id="modal-title"></h3>
+    <p id="modal-msg"></p>
+    <div class="btn-group">
+      <button class="btn btn-outline btn-sm" onclick="closeModal()">キャンセル</button>
+      <button class="btn btn-danger btn-sm" id="modal-confirm">削除する</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Auto-load existing worklists.js from folder -->
+<script>window.__wlAutoLoaded = false;</script>
+<script src="worklists/worklists.js" onload="window.__wlAutoLoaded=true" onerror="window.__wlAutoLoaded=false"></script>
+
+<script>
+// ===============================
+// State
+// ===============================
+// existing: loaded from worklists.js {name: [{word,meaning}]}
+// newFiles: added via CSV upload [{displayName, fileName, words:[{word,meaning}]}]
+let existing = {};
+let newFiles = [];
+
+// ===============================
+// Step 1: Auto-load or manual load of worklists.js
+// ===============================
+
+function autoLoadWorklists() {
+  const data = window.WORKLISTS;
+  if (data && typeof data === 'object' && Object.keys(data).length > 0) {
+    populateExisting(data);
+    const names = Object.keys(existing);
+    const total = Object.values(existing).reduce((s, w) => s + w.length, 0);
+    document.getElementById('load-status').innerHTML =
+      `<span class="status-loaded">✅ worklists/worklists.js を自動読み込みしました（${names.length}冊・${total}語）</span>`;
+    document.getElementById('load-fallback').style.display = 'none';
+  } else {
+    // Auto-load failed or empty
+    document.getElementById('load-status').innerHTML =
+      '<span class="status-empty">📭 登録ずみの単語帳はありません</span>';
+    document.getElementById('load-fallback').style.display = 'block';
+  }
+  renderExisting();
+  updateStepNumbers();
+  updateSaveSummary();
+}
+
+function populateExisting(data) {
+  existing = {};
+  Object.keys(data).forEach(name => {
+    if (Array.isArray(data[name])) {
+      existing[name] = data[name]
+        .map(w => ({ word: String(w.word || ''), meaning: String(w.meaning || '') }))
+        .filter(w => w.word && w.meaning);
+    }
+  });
+}
+
+// Manual fallback upload
+const $loadInput = document.getElementById('load-input');
+const $loadArea = document.getElementById('load-area');
+if ($loadArea) {
+  $loadArea.addEventListener('dragover', e => { e.preventDefault(); $loadArea.style.borderColor = '#4F46E5'; });
+  $loadArea.addEventListener('dragleave', () => { $loadArea.style.borderColor = ''; });
+  $loadArea.addEventListener('drop', e => { e.preventDefault(); $loadArea.style.borderColor = ''; if (e.dataTransfer.files.length) loadFromFile(e.dataTransfer.files[0]); });
+}
+if ($loadInput) {
+  $loadInput.addEventListener('change', () => { if ($loadInput.files.length) loadFromFile($loadInput.files[0]); $loadInput.value = ''; });
+}
+
+function loadFromFile(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const code = e.target.result;
+      const sandbox = {};
+      const fn = new Function('window', code + '\nreturn window.WORKLISTS;');
+      const data = fn(sandbox) || sandbox.WORKLISTS;
+      if (!data || typeof data !== 'object') {
+        document.getElementById('load-status').innerHTML = '<span class="status-empty">⚠️ WORKLISTS が見つかりませんでした</span>';
+        return;
+      }
+      populateExisting(data);
+      const names = Object.keys(existing);
+      const total = Object.values(existing).reduce((s, w) => s + w.length, 0);
+      document.getElementById('load-status').innerHTML =
+        `<span class="status-loaded">✅ ${names.length}冊の単語帳（${total}語）を読み込みました</span>`;
+      document.getElementById('load-fallback').style.display = 'none';
+      renderExisting();
+      updateStepNumbers();
+      updateSaveSummary();
+    } catch (err) {
+      document.getElementById('load-status').innerHTML = '<span class="status-empty">⚠️ ファイルの読み込みに失敗しました</span>';
+      console.error(err);
+    }
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+// ===============================
+// Render existing worklists
+// ===============================
+function renderExisting() {
+  const names = Object.keys(existing);
+  const $list = document.getElementById('existing-list');
+  const $countWrap = document.getElementById('existing-count-wrap');
+
+  if (!names.length) {
+    $list.innerHTML = '';
+    $countWrap.style.display = 'none';
+    return;
+  }
+
+  $countWrap.style.display = 'block';
+  const total = Object.values(existing).reduce((s, w) => s + w.length, 0);
+  document.getElementById('existing-count').textContent = `合計 ${names.length}冊・${total}語`;
+  $list.innerHTML = '';
+
+  names.forEach(name => {
+    const words = existing[name];
+    const div = document.createElement('div');
+    div.className = 'wl-card';
+    div.innerHTML = `
+      <div class="wl-header">
+        <span class="wl-icon">📗</span>
+        <div class="wl-info">
+          <span class="wl-name">${esc(name)}</span>
+          <span class="wl-count">${words.length}語</span>
+        </div>
+        <div class="wl-actions">
+          <button class="btn-icon" title="CSVダウンロード" data-action="csv"><span>📥</span></button>
+          <button class="btn-icon danger" title="削除" data-action="delete"><span>🗑</span></button>
+        </div>
+        <span class="wl-chevron">▶</span>
+      </div>
+      <div class="wl-body">
+        <div class="word-table-wrap">
+          <table class="word-table">
+            <thead><tr><th style="width:40%">英単語</th><th>意味</th></tr></thead>
+            <tbody>${words.map(w => `<tr><td>${esc(w.word)}</td><td>${esc(w.meaning)}</td></tr>`).join('')}</tbody>
+          </table>
+        </div>
+      </div>`;
+
+    // Toggle open/close
+    div.querySelector('.wl-header').addEventListener('click', e => {
+      // Don't toggle if clicking action buttons
+      if (e.target.closest('[data-action]')) return;
+      div.classList.toggle('open');
+    });
+
+    // CSV download
+    div.querySelector('[data-action="csv"]').addEventListener('click', e => {
+      e.stopPropagation();
+      downloadSingleCSV(name, words);
+    });
+
+    // Delete
+    div.querySelector('[data-action="delete"]').addEventListener('click', e => {
+      e.stopPropagation();
+      confirmDelete(name);
+    });
+
+    $list.appendChild(div);
+  });
+}
+
+// ===============================
+// Download single worklist as CSV
+// ===============================
+function downloadSingleCSV(name, words) {
+  let csv = '単語,意味\n';
+  words.forEach(w => { csv += `${w.word},${w.meaning}\n`; });
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${name}.csv`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showToast(`📥 ${name}.csv をダウンロードしました`);
+}
+
+// ===============================
+// Delete confirmation
+// ===============================
+let deleteTarget = null;
+
+function confirmDelete(name) {
+  deleteTarget = name;
+  document.getElementById('modal-title').textContent = '単語帳を削除';
+  document.getElementById('modal-msg').textContent = `「${name}」（${existing[name].length}語）を削除しますか？\nworklists.js をダウンロードし直すと反映されます。`;
+  document.getElementById('modal').classList.add('show');
+}
+
+document.getElementById('modal-confirm').addEventListener('click', () => {
+  if (deleteTarget && existing[deleteTarget]) {
+    delete existing[deleteTarget];
+    renderExisting();
+    updateStepNumbers();
+    updateSaveSummary();
+    showToast(`🗑 「${deleteTarget}」を削除しました`);
+    deleteTarget = null;
+  }
+  closeModal();
+});
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('show');
+  deleteTarget = null;
+}
+
+// Close modal on overlay click
+document.getElementById('modal').addEventListener('click', e => {
+  if (e.target === document.getElementById('modal')) closeModal();
+});
+
+// ===============================
+// Step 3: Add new CSV files
+// ===============================
+const $addInput = document.getElementById('add-input');
+const $addArea = document.getElementById('add-area');
+$addArea.addEventListener('dragover', e => { e.preventDefault(); $addArea.style.borderColor = '#4F46E5'; $addArea.style.background = '#EEF2FF'; });
+$addArea.addEventListener('dragleave', () => { $addArea.style.borderColor = ''; $addArea.style.background = ''; });
+$addArea.addEventListener('drop', e => { e.preventDefault(); $addArea.style.borderColor = ''; $addArea.style.background = ''; handleNewFiles(e.dataTransfer.files); });
+$addInput.addEventListener('change', () => { if ($addInput.files.length) handleNewFiles($addInput.files); $addInput.value = ''; });
+
+function handleNewFiles(files) {
+  Array.from(files).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const buf = new Uint8Array(e.target.result);
+      let text = dec(buf, 'UTF-8');
+      if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+      let words = parseCSV(text);
+      if (!words.length || hasG(words)) {
+        text = dec(buf, 'Shift_JIS');
+        if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+        const w2 = parseCSV(text);
+        if (w2.length && !hasG(w2)) words = w2;
+      }
+      if (words.length) {
+        const displayName = file.name.replace(/\.csv$/i, '');
+        newFiles.push({ displayName, fileName: file.name, words });
+        renderNewFiles();
+        updateSaveSummary();
+      } else {
+        showToast(`⚠️ ${file.name} から単語が見つかりませんでした`);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+function renderNewFiles() {
+  const $list = document.getElementById('new-files-list');
+  $list.innerHTML = '';
+  newFiles.forEach((f, i) => {
+    const div = document.createElement('div');
+    div.className = 'new-file';
+    div.innerHTML = `
+      <span style="font-size:1.2rem">📄</span>
+      <div class="nf-info">
+        <input class="nf-name-input" type="text" value="${escAttr(f.displayName)}" placeholder="単語帳の名前" data-idx="${i}">
+        <span class="nf-detail">${esc(f.fileName)} — ${f.words.length}語</span>
+      </div>
+      <button class="btn-icon danger" title="取り消し" style="flex-shrink:0"><span>✕</span></button>`;
+    div.querySelector('.nf-name-input').addEventListener('input', e => { newFiles[i].displayName = e.target.value; });
+    div.querySelector('.btn-icon').addEventListener('click', () => { newFiles.splice(i, 1); renderNewFiles(); updateSaveSummary(); });
+    $list.appendChild(div);
+  });
+}
+
+// ===============================
+// Update step numbers dynamically
+// ===============================
+function updateStepNumbers() {
+  // Steps are always: 1=Existing, 2=Add, 3=Save
+  document.getElementById('step-add-num').textContent = '2';
+  document.getElementById('step-save-num').textContent = '3';
+}
+
+// ===============================
+// Save summary
+// ===============================
+function updateSaveSummary() {
+  const exCount = Object.keys(existing).length;
+  const exWords = Object.values(existing).reduce((s, w) => s + w.length, 0);
+  const newCount = newFiles.length;
+  const newWords = newFiles.reduce((s, f) => s + f.words.length, 0);
+  const totalLists = exCount + newCount;
+  const totalWords = exWords + newWords;
+
+  let parts = [];
+  if (exCount) parts.push(`既存 ${exCount}冊（${exWords}語）`);
+  if (newCount) parts.push(`新規 ${newCount}冊（${newWords}語）`);
+
+  const $sum = document.getElementById('save-summary');
+  if (totalLists === 0) {
+    $sum.textContent = '単語帳がありません';
+    document.getElementById('btn-save').disabled = true;
+  } else {
+    $sum.innerHTML = `合計 <strong style="color:var(--primary)">${totalLists}冊</strong>（${totalWords}語）を保存します` +
+      (parts.length ? `<br><span style="font-size:.85rem;color:var(--text-light)">${parts.join(' ＋ ')}</span>` : '');
+    document.getElementById('btn-save').disabled = false;
+  }
+}
+
+// ===============================
+// Generate JS
+// ===============================
+function generateJS() {
+  // Merge existing + new (new files may overwrite same-named existing)
+  const merged = { ...existing };
+  newFiles.forEach((f, i) => {
+    const name = f.displayName || `新規単語帳${i + 1}`;
+    merged[name] = f.words;
+  });
+
+  let js = '// えいたんごクイズ - 単語帳データ\n';
+  js += '// Generated: ' + new Date().toLocaleString('ja-JP') + '\n';
+  js += 'window.WORKLISTS = {\n';
+
+  const names = Object.keys(merged);
+  names.forEach((name, i) => {
+    const words = merged[name];
+    js += `  ${JSON.stringify(name)}: [\n`;
+    words.forEach((w, j) => {
+      js += `    {word:${JSON.stringify(w.word)},meaning:${JSON.stringify(w.meaning)}}`;
+      js += j < words.length - 1 ? ',\n' : '\n';
+    });
+    js += `  ]${i < names.length - 1 ? ',' : ''}\n`;
+  });
+
+  js += '};\n';
+  return js;
+}
+
+function downloadJS() {
+  const js = generateJS();
+  const blob = new Blob([js], { type: 'application/javascript;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'worklists.js';
+  a.click();
+  URL.revokeObjectURL(a.href);
+
+  // After download, merge newFiles into existing and clear newFiles
+  newFiles.forEach((f, i) => {
+    const name = f.displayName || `新規単語帳${i + 1}`;
+    existing[name] = f.words;
+  });
+  newFiles = [];
+  renderNewFiles();
+  renderExisting();
+  updateStepNumbers();
+  updateSaveSummary();
+
+  document.getElementById('success-msg').innerHTML = `
+    <div class="success-box">
+      ✅ ダウンロード完了！<code style="font-size:.83rem">worklists/worklists.js</code> に上書き保存してください
+    </div>`;
+  showToast('💾 worklists.js をダウンロードしました');
+}
+
+function togglePreview() {
+  const $w = document.getElementById('preview-wrap');
+  if ($w.style.display === 'none') {
+    $w.style.display = 'block';
+    document.getElementById('preview').textContent = generateJS();
+  } else {
+    $w.style.display = 'none';
+  }
+}
+
+// ===============================
+// CSV Parse
+// ===============================
+function parseCSV(t) {
+  const lines = t.split(/\r?\n/).filter(l => l.trim()), items = [];
+  let s = 0;
+  if (lines.length && (/^単語[,\t]/.test(lines[0].trim()) || /^word[,\t]/i.test(lines[0].trim()))) s = 1;
+  for (let i = s; i < lines.length; i++) {
+    const l = lines[i].trim(); if (!l) continue;
+    const sep = l.includes('\t') ? '\t' : ',';
+    const p = l.split(sep);
+    if (p.length >= 2) {
+      const w = p[0].replace(/^["']|["']$/g, '').trim();
+      const m = p.slice(1).join(sep).replace(/^["']|["']$/g, '').trim();
+      if (w && m) items.push({ word: w, meaning: m });
+    }
+  }
+  return items;
+}
+function dec(u, e) { try { return new TextDecoder(e).decode(u); } catch { return ''; } }
+function hasG(l) { return l.some(w => w.meaning.includes('\uFFFD') || w.word.includes('\uFFFD')); }
+
+// ===============================
+// Utils
+// ===============================
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+function escAttr(s) { return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+let tT;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(tT); tT = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ===============================
+// Init
+// ===============================
+// Small delay to ensure worklists.js <script> has executed
+setTimeout(() => {
+  autoLoadWorklists();
+}, 50);
+</script>
+</body>
+</html>
